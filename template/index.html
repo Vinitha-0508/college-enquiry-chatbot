@@ -2,18 +2,216 @@
 <html>
 <head>
     <title>College Enquiry Chatbot</title>
-    <link rel="stylesheet" href="/static/style.css">
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #74ebd5, #acb6e5);
+            margin: 0;
+        }
+
+        .chat-container {
+            width: 500px;
+            margin: 50px auto;
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        #chat-box {
+            height: 350px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            overflow-y: auto;
+            padding: 10px;
+            background: #f9f9f9;
+            margin-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user {
+            align-self: flex-end;
+            background: #007bff;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 15px 15px 0 15px;
+            margin: 5px 0;
+            max-width: 75%;
+        }
+
+        .bot {
+            align-self: flex-start;
+            background: #28a745;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 15px 15px 15px 0;
+            margin: 5px 0;
+            max-width: 75%;
+        }
+
+        .input-area {
+            display: flex;
+            gap: 10px;
+        }
+
+        #user-input {
+            flex: 1;
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            background: #720ecf;
+            color: white;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        #feedback {
+            display: none;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        #feedback button {
+            font-size: 22px;
+            margin: 4px;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        #feedback button:hover {
+            transform: scale(1.2);
+        }
+    </style>
 </head>
+
 <body>
 
 <div class="chat-container">
-    <h2>College Enquiry Chatbot</h2>
+    <h2>🤖 College Enquiry Chatbot</h2>
+
     <div id="chat-box"></div>
 
-    <input type="text" id="user-input" placeholder="Ask your question">
-    <button onclick="sendMessage()">Send</button>
+    <div class="input-area">
+        <input type="text" id="user-input" placeholder="Type your message here...">
+        <button onclick="sendMessage()">Send 🚀</button>
+    </div>
+
+    <!-- FEEDBACK SECTION -->
+    <div id="feedback">
+        <p><b>Are you satisfied with this?</b></p>
+
+        <button onclick="sendFeedback('excellent')">🤩</button>
+        <button onclick="sendFeedback('happy')">😊</button>
+        <button onclick="sendFeedback('good')">🙂</button>
+        <button onclick="sendFeedback('neutral')">😐</button>
+        <button onclick="sendFeedback('confused')">😕</button>
+        <button onclick="sendFeedback('sad')">😞</button>
+        <button onclick="sendFeedback('bad')">😡</button>
+        <button onclick="sendFeedback('like')">👍</button>
+        <button onclick="sendFeedback('love')">❤️</button>
+        <button onclick="sendFeedback('star')">⭐</button>
+    </div>
 </div>
 
-<script src="/static/js/script.js"></script>
+<script>
+
+const input = document.getElementById("user-input");
+
+// Enter key support
+input.addEventListener("keypress", function(e) {
+    if (e.key === "Enter") {
+        sendMessage();
+    }
+});
+
+function appendMessage(text, sender) {
+    const chatBox = document.getElementById("chat-box");
+    const msgDiv = document.createElement("div");
+    msgDiv.className = sender;
+    msgDiv.textContent = text;
+    chatBox.appendChild(msgDiv);
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+function sendMessage() {
+    let message = input.value.trim();
+    if (message === "") return;
+
+    appendMessage(message, "user");
+
+    fetch("/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: message })
+    })
+    .then(res => res.json())
+    .then(data => {
+        appendMessage(data.reply, "bot");
+        document.getElementById("feedback").style.display = "block";
+    })
+    .catch(() => {
+        appendMessage("Server error", "bot");
+    });
+
+    input.value = "";
+}
+
+function sendFeedback(type) {
+    const responses = {
+        excellent: "🤩 Wow! Thank you so much for your excellent feedback!",
+        happy: "😊 Glad you are happy! Thank you!",
+        good: "🙂 Happy to help you anytime!",
+        neutral: "😐 Thank you! We will try to improve.",
+        confused: "😕 Sorry for confusion! We will make it clearer.",
+        sad: "😞 Sorry about that! We will improve.",
+        bad: "😡 We apologize! Your feedback is important to us.",
+        like: "👍 Thank you for the like!",
+        love: "❤️ Thanks for your love!",
+        star: "⭐ Thanks for the rating!"
+    };
+
+    appendMessage(typeEmoji(type), "user");
+    appendMessage(responses[type], "bot");
+
+    document.getElementById("feedback").style.display = "none";
+}
+
+function typeEmoji(type) {
+    const emojis = {
+        excellent: "🤩",
+        happy: "😊",
+        good: "🙂",
+        neutral: "😐",
+        confused: "😕",
+        sad: "😞",
+        bad: "😡",
+        like: "👍",
+        love: "❤️",
+        star: "⭐"
+    };
+    return emojis[type];
+}
+
+</script>
+
 </body>
 </html>
